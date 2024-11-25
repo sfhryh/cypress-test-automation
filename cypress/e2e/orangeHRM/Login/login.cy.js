@@ -1,102 +1,109 @@
+import loginPage from "../../../pom/Login/login.cy";
 /// <reference types="cypress" />
 
 describe('Login Feature',() => {
     beforeEach(() => {
     cy.visit('https://opensource-demo.orangehrmlive.com/web/index.php/auth/login');
-    cy.get('h5').contains('Login').should('contain.text','Login');
+    loginPage.verifyLoginPage().should('contain.text','Login');
     });
   
     it('user login with valid credentials', ()=> {
-        cy.get('[name="username"]').type('Admin');
-        cy.get('[name="password"]').type('admin123');
-        cy.get('[type="submit"]').click();
-        cy.get('h6').contains('Dashboard').should('contain.text','Dashboard');
+        loginPage.inputUsername().type('Admin');
+        loginPage.inputPassword().type('admin123');
+        cy.intercept('GET','**/subunit').as('subUnit');
+        loginPage.buttonLogin().click();
+        cy.wait('@subUnit');
+        loginPage.dashboardPage().should('contain.text','Dashboard');
     })
 
     it('should display validation error message for invalid username and password', () => {
-        cy.get('[name="username"]').type('Asmin');
-        cy.get('[name="password"]').type('admin1234');
-        cy.get('[type="submit"]').click();
-        cy.get('div.oxd-alert-content.oxd-alert-content--error')
+        loginPage.inputUsername().type('Asmin');
+        loginPage.inputPassword().type('admin1234');
+        loginPage.buttonLogin().click();
+        loginPage.errorValidate()
           .should('be.visible')
           .and('contain.text', 'Invalid credentials');
       
     })
 
     it('should display validation error message for invalid password', () => {
-        cy.get('[name="username"]').type('Admin');
-        cy.get('[name="password"]').type('admin1234');
-        cy.get('[type="submit"]').click();
-        cy.get('div.oxd-alert-content.oxd-alert-content--error')
+        loginPage.inputUsername().type('Admin');
+        loginPage.inputPassword().type('admin1234');
+        loginPage.buttonLogin().click();
+        loginPage.errorValidate()
           .should('be.visible')
           .and('contain.text', 'Invalid credentials');
       
     })
 
     it('should display validation error message for invalid username', () => {
-        cy.get('[name="username"]').type('Asmin');
-        cy.get('[name="password"]').type('admin123');
-        cy.get('[type="submit"]').click();
-        cy.get('div.oxd-alert-content.oxd-alert-content--error')
+        loginPage.inputUsername().type('Asmin');
+        loginPage.inputPassword().type('admin123');
+        loginPage.buttonLogin().click();
+        loginPage.errorValidate()
           .should('be.visible')
           .and('contain.text', 'Invalid credentials');
       
     })
 
     it('should display validation error when username and password are empty', () => {
-        cy.get('[type="submit"]').click();
-        cy.get('.oxd-input-group__message')
+        loginPage.buttonLogin().click();
+        loginPage.errorNull()
           .should('be.visible')
           .and('contain.text', 'Required');
-        cy.get('.oxd-input-group__message').eq(1)
+        loginPage.errorNull().eq(1)
           .should('be.visible')
           .and('contain.text', 'Required');
     });
         
     it('should display validation error when password is empty', () => {
-        cy.get('[name="username"]').type('Admin');    
-        cy.get('[type="submit"]').click();
-        cy.get('.oxd-input-group__message')
+        loginPage.inputUsername().type('Admin');    
+        loginPage.buttonLogin().click();
+        loginPage.errorNull()
           .should('be.visible')
           .and('contain.text', 'Required');
     });
 
     it('should display validation error when username is empty', () => {
-        cy.get('[name="password"]').type('admin123');    
-        cy.get('[type="submit"]').click();
-        cy.get('.oxd-input-group__message')
+        loginPage.inputPassword().type('admin123');    
+        loginPage.buttonLogin().click();
+        loginPage.errorNull()
           .should('be.visible')
           .and('contain.text', 'Required');
     });
 
     it('should success to login when username has different case-sensitivity', () => {
-        cy.get('[name="username"]').type('aDmin');
-        cy.get('[name="password"]').type('admin123');
-        cy.get('[type="submit"]').click();
-        cy.get('h6').contains('Dashboard').should('contain.text','Dashboard');
+        loginPage.inputUsername().type('aDmin');
+        loginPage.inputPassword().type('admin123');
+        cy.intercept('GET','**/locations').as('locations');
+        loginPage.buttonLogin().click();
+        cy.wait('@locations');
+        loginPage.dashboardPage().should('contain.text','Dashboard');
     })
 
     it('should display validation error when password has different case-sensitivity', () => {
-        cy.get('[name="username"]').type('admin');        
-        cy.get('[name="password"]').type('Admin123');    
-        cy.get('[type="submit"]').click();
-        cy.get('div.oxd-alert-content.oxd-alert-content--error')
+        loginPage.inputUsername().type('admin');        
+        loginPage.inputPassword().type('Admin123');    
+        loginPage.buttonLogin().click();
+        loginPage.errorValidate()
           .should('be.visible')
           .and('contain.text', 'Invalid credentials');
     });
 
     it('should success to login when username has trailing spaces', () => {
-        cy.get('[name="username"]').type('Admin ');
-        cy.get('[name="password"]').type('admin123');
-        cy.get('[type="submit"]').click();
-        cy.get('h6').contains('Dashboard').should('contain.text','Dashboard');
+        loginPage.inputUsername().type('Admin ');
+        loginPage.inputPassword().type('admin123');
+        cy.intercept('GET','**/feed?limit=5&offset=0&sortOrder=DESC&sortField=share.createdAtUtc').as('feed');
+        loginPage.buttonLogin().click();
+        cy.wait('@feed');
+        loginPage.dashboardPage().should('contain.text','Dashboard');
     })
 
     it('should display validation error when username has leading spaces', () => {
-        cy.get('[name="username"]').type(' Admin');
-        cy.get('[name="password"]').type('admin123');
-        cy.get('[type="submit"]').click();
-        cy.get('div.oxd-alert-content.oxd-alert-content--error')
+        loginPage.inputUsername().type(' Admin');
+        loginPage.inputPassword().type('admin123');
+        loginPage.buttonLogin().click();
+        loginPage.errorValidate()
           .should('be.visible')
           .and('contain.text', 'Invalid credentials');
     })
@@ -104,8 +111,8 @@ describe('Login Feature',() => {
     it('should redirect to login page when accessing menu URL directly without login', () => {
         cy.visit('https://opensource-demo.orangehrmlive.com/web/index.php/pim/viewEmployeeList');
         cy.url().should('include', '/login');
-        cy.get('[name="username"]').should('be.visible');
-        cy.get('[name="password"]').should('be.visible');
+        loginPage.inputUsername().should('be.visible');
+        loginPage.inputPassword().should('be.visible');
     });
 
 })
