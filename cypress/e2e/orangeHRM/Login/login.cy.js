@@ -3,7 +3,7 @@ import loginPage from "../../../pom/Login/login.cy";
 
 describe('Login Feature',() => {
     beforeEach(() => {
-    cy.visit('https://opensource-demo.orangehrmlive.com/web/index.php/auth/login');
+    loginPage.visitLoginPage();
     loginPage.verifyLoginPage().should('contain.text','Login');
     });
   
